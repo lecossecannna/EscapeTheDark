@@ -2,6 +2,8 @@
 
 #include "UnrealProjectGameMode.h"
 
+
+#include <ctime>
 #include <string>
 
 #include "MazeModule.h"
