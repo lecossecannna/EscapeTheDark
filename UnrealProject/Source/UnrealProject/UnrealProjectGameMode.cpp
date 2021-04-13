@@ -7,6 +7,7 @@
 #include <string>
 
 #include "MazeModule.h"
+#include "MazeRoom.h"
 #include "UnrealProjectHUD.h"
 #include "UObject/ConstructorHelpers.h"
 
@@ -20,18 +21,68 @@ AUnrealProjectGameMode::AUnrealProjectGameMode() : Super()
 	HUDClass = AUnrealProjectHUD::StaticClass();
 
     LineModule = AMazeModule::StaticClass();
+    CrossroadsModule = AMazeModule::StaticClass();
+    TModule = AMazeModule::StaticClass();
 
     Grid = new int[Width * Height];
-}
 
-AUnrealProjectGameMode::~AUnrealProjectGameMode()
-{
-    delete[] Grid;
+    Rooms.Add(CreateDefaultSubobject<UMazeRoom>(FName("Room0")));
+    int Room1[32]{ 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 , 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 , 2, 2, 2, 2 };
+    Rooms[0]->SetWalls(this, Room1, 8, 4);
+
+    Rooms.Add(CreateDefaultSubobject<UMazeRoom>(FName("Room1")));
+    int Room2[32]{ 0, 0, 2, 2, 2, 2, 2, 2,
+                    2, 2, 2, 2, 2, 2, 2, 2,
+                    2, 2, 2, 2, 2, 2, 2, 2,
+                    2, 2, 2, 2 ,2, 2, 2, 2 };
+    Rooms[1]->SetWalls(this, Room2, 8, 4);
+
+    Rooms.Add(CreateDefaultSubobject<UMazeRoom>(FName("Room2")));
+    int Room3[32]{ 0, 0, 2, 2, 2, 2, 2, 2,
+                    2, 2, 2, 2, 2, 2, 2, 2,
+                    2, 2, 2, 2, 2, 2, 2, 2,
+                    2, 2, 2, 2 ,2, 2, 2, 2 };
+    Rooms[2]->SetWalls(this, Room3, 8, 4);
+
+    Rooms.Add(CreateDefaultSubobject<UMazeRoom>(FName("Room3")));
+    int Room4[32]{ 0, 0, 2, 2, 2, 2, 2, 2,
+                    2, 2, 2, 2, 2, 2, 2, 2,
+                    2, 2, 2, 2, 2, 2, 2, 2,
+                    2, 2, 2, 2 ,2, 2, 2, 2 };
+    Rooms[3]->SetWalls(this, Room4, 8, 4);
+
+    Rooms.Add(CreateDefaultSubobject<UMazeRoom>(FName("Room4")));
+    int Room5[32]{ 0, 0, 2, 2, 2, 2, 2, 2,
+                    2, 2, 2, 2, 2, 2, 2, 2,
+                    2, 2, 2, 2, 2, 2, 2, 2,
+                    2, 2, 2, 2 ,2, 2, 2, 2 };
+    Rooms[4]->SetWalls(this, Room5, 8, 4);
 }
 
 void AUnrealProjectGameMode::BeginPlay()
 {
     GenerateMaze();
+
+    auto TempRooms = Rooms;
+    for(int i = TempRooms.Num() - 1; i >= 0; i--)
+    {
+        if(!TempRooms[i]->GenerateRoom())
+        {
+            TempRooms.RemoveAt(i);
+        }
+    }
+
+    Rooms = TempRooms;
+
+    //for (auto It = Rooms.begin(); It != Rooms.end(); ++It)
+    //{
+    //    if (!(*It)->GenerateRoom())
+    //    {
+    //        Rooms.Remove(*It);
+    //        ++It;
+    //    }
+    //}
+
     CreateModules();
 }
 
@@ -48,14 +99,104 @@ void AUnrealProjectGameMode::CreateModules() const
     {
         for(int jWidth = 0; jWidth < Width; jWidth++)
         {
-            if(Grid[XYToIndex(jWidth, iHeight)] == GROUND)
+            if (Grid[XYToIndex(jWidth, iHeight)] == GROUND || Grid[XYToIndex(jWidth, iHeight)] == ROOM_GROUND)
             {
-                FActorSpawnParameters SpawnParameters;
-                SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+                EModuleType ModuleType = static_cast<EModuleType>(Grid[XYToIndex(jWidth, iHeight)]);
 
-                const FTransform Transform(FRotator::ZeroRotator, FVector{ MazeX + jWidth * ModuleSize, MazeY + iHeight * ModuleSize, 0 });
+                UClass* ModuleClass = nullptr;
+                FRotator ModuleRotation = FRotator::ZeroRotator;
+                const int WallsCount = NumberOfWalls(jWidth, iHeight, ModuleType);
 
-                GetWorld()->SpawnActor(LineModule, &Transform, SpawnParameters);
+                if (WallsCount == 2)
+                {
+                    if (Grid[XYToIndex(jWidth, iHeight - 1)] == Grid[XYToIndex(jWidth, iHeight + 1)]
+                        || Grid[XYToIndex(jWidth - 1, iHeight)] == Grid[XYToIndex(jWidth + 1, iHeight)] ) // Line
+                    {
+                        if (Grid[XYToIndex(jWidth, iHeight + 1)] == ModuleType)
+                        {
+                            ModuleRotation.Yaw = 90;
+                        }
+
+                        ModuleClass = LineModule;
+                    }
+                    else // Turn
+                    {
+                        if (Grid[XYToIndex(jWidth, iHeight + 1)] != ModuleType)
+                        {
+                            if (Grid[XYToIndex(jWidth + 1, iHeight)] != ModuleType)
+                            {
+                                ModuleRotation.Yaw = 90;
+                            }
+                            else
+                            {
+                                ModuleRotation.Yaw = 180;
+                            }
+                        }
+                        else
+                        {
+                            if (Grid[XYToIndex(jWidth + 1, iHeight)] != ModuleType)
+                            {
+                                ModuleRotation.Yaw = 0;
+                            }
+                            else
+                            {
+                                ModuleRotation.Yaw = -90;
+                            }
+                        }
+                        ModuleClass = TurnModule;
+                    }
+                }
+                else if (WallsCount == 1) // T
+                {
+                    if (Grid[XYToIndex(jWidth, iHeight - 1)] != ModuleType)
+                    {
+                        ModuleRotation.Yaw = -90;
+                    }
+                    else if (Grid[XYToIndex(jWidth, iHeight + 1)] != ModuleType)
+                    {
+                        ModuleRotation.Yaw = 90;
+                    }
+                    else if(Grid[XYToIndex(jWidth - 1, iHeight)] != ModuleType)
+                    {
+                        ModuleRotation.Yaw = 180;
+                    }
+
+                    ModuleClass = TModule;
+                }
+                else if (WallsCount == 3) // Dead end
+                {
+                    if (Grid[XYToIndex(jWidth, iHeight - 1)] == ModuleType)
+                    {
+                        ModuleRotation.Yaw = 180;
+                    }
+                    else if (Grid[XYToIndex(jWidth, iHeight + 1)] == ModuleType)
+                    {
+                        ModuleRotation.Yaw = 0;
+                    }
+                    else if (Grid[XYToIndex(jWidth - 1, iHeight)] == ModuleType)
+                    {
+                        ModuleRotation.Yaw = 90;
+                    }
+                    else
+                    {
+                        ModuleRotation.Yaw = -90;
+                    }
+                    ModuleClass = DeadEndModule;
+                }
+                else if (WallsCount == 4) // Crossroad
+                {
+                    // not needed for now
+                }
+
+                if(ModuleClass != nullptr)
+                {
+                    FActorSpawnParameters SpawnParameters;
+                    SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+                    const FTransform Transform(ModuleRotation, FVector{ MazeX + jWidth * ModuleSize, MazeY + iHeight * ModuleSize, 0 });
+
+                    GetWorld()->SpawnActor(ModuleClass, &Transform, SpawnParameters);
+                }
             }
         }
     }
@@ -148,11 +289,11 @@ void AUnrealProjectGameMode::Visit(int x, int y) const
         }
     }
 
-    for(int i = 1; i < Height - 1; i+=2)
+    for(int i = 1; i < Height-1; i+=2)
     {
-        for(int j = 1; j < Width - 1; j+=2)
+        for(int j = 1; j < Width-1; j+=2)
         {
-            if(NumberOfWalls(i, j) == 3)
+            if(NumberOfWalls(i, j, GROUND) == 3)
             {
                 BreakDeadEndWall(j, i);
             }
@@ -160,26 +301,26 @@ void AUnrealProjectGameMode::Visit(int x, int y) const
     }
 }
 
-int AUnrealProjectGameMode::NumberOfWalls(const int x, const int y) const
+int AUnrealProjectGameMode::NumberOfWalls(const int x, const int y, const EModuleType& ModuleType) const
 {
     int WallsCount = 0;
 
-    if(Grid[XYToIndex(x - 1, y)] == WALL)
+    if(x - 1 < 0 || Grid[XYToIndex(x - 1, y)] != ModuleType)
     {
         WallsCount++;
     }
 
-    if (Grid[XYToIndex(x + 1, y)] == WALL)
+    if (x + 1 > Width || Grid[XYToIndex(x + 1, y)] != ModuleType)
     {
         WallsCount++;
     }
 
-    if (Grid[XYToIndex(x, y - 1)] == WALL)
+    if (y - 1 < 0 || Grid[XYToIndex(x, y - 1)] != ModuleType)
     {
         WallsCount++;
     }
 
-    if (Grid[XYToIndex(x, y + 1)] == WALL)
+    if (y + 1 > Height || Grid[XYToIndex(x, y + 1)] != ModuleType)
     {
         WallsCount++;
     }
@@ -209,7 +350,7 @@ void AUnrealProjectGameMode::BreakDeadEndWall(const int x, const int y) const
 
 void AUnrealProjectGameMode::BreakWall(const int x, const int y) const
 {
-    if(x == 0 || y == 0 || x == Width || y == Height)
+    if(x < 0 || y < 0 || x >= Width || y >= Height)
     {
         return;
     }

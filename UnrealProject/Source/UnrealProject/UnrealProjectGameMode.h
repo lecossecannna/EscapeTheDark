@@ -16,8 +16,7 @@ enum EModuleType
 {
     GROUND,
 	WALL,
-	ROOM_GROUND,
-	ROOM_WALL
+	ROOM_GROUND
 };
 
 class UMazeRoom;
@@ -28,7 +27,6 @@ class AUnrealProjectGameMode : public AGameModeBase
 
 public:
 	AUnrealProjectGameMode();
-	~AUnrealProjectGameMode();
 
 	virtual void BeginPlay() override;
 
@@ -49,7 +47,7 @@ protected:
     int		IsInBounds(int x, int y) const;
     void	Visit(int x, int y) const;
 
-	int		NumberOfWalls(int x, int y) const;
+	int		NumberOfWalls(int x, int y, const EModuleType& ModuleType) const;
 	void	BreakDeadEndWall(int x, int y) const;
 	void	BreakWall(int x, int y) const;
 
@@ -83,12 +81,24 @@ protected:
 	 * X and Y size of modules.
 	 */
 	UPROPERTY(EditAnywhere)
-	int	ModuleSize = 600;
+	int	ModuleSize = 300;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<class AMazeModule> LineModule = nullptr;
 
-	TArray<UMazeRoom*> Rooms;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class AMazeModule> TurnModule = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class AMazeModule> TModule = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class AMazeModule> DeadEndModule = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class AMazeModule> CrossroadsModule = nullptr;
+
+	TArray<UMazeRoom*>	Rooms;
 };
 
 

@@ -4,8 +4,8 @@
 #include "MazeRoom.h"
 #include "UnrealProjectGameMode.h"
 
-std::random_device Rd;
-std::mt19937 Gen(Rd());
+std::random_device UMazeRoom::Rd;
+std::mt19937 UMazeRoom::Gen(Rd());
 
 UMazeRoom::UMazeRoom()
 {
@@ -36,22 +36,45 @@ void UMazeRoom::SetWalls(AUnrealProjectGameMode* Mode, int* Walls, const int Hei
 
 bool UMazeRoom::GenerateRoom()
 {
-    const std::uniform_int_distribution<int> DisHeight(0, GameMode->Height - 1);
-    const std::uniform_int_distribution<int> DisWidth(0, GameMode->Width - 1);
+    const std::uniform_int_distribution<int> DisHeight(0, GameMode->Height - RoomHeight - 1);
+    const std::uniform_int_distribution<int> DisWidth(0, GameMode->Width - RoomWidth - 1);
 
-    for(int i = 0; i < 500; i++)
+    for(int i = 0; i < 50; i++)
     {
         const int x = DisWidth(Gen);
         const int y = DisHeight(Gen);
 
-        for(int j = x; j < x + RoomWidth; j++)
+        bool bInvalid = false;
+
+        for(const auto& Room : GameMode->Rooms)
         {
-            for(int k = y; k < y + RoomHeight; k++)
+            if(Room->CurrentX != -1 && x < Room->CurrentX + Room->RoomWidth && x + RoomWidth > Room->CurrentX && y < Room->CurrentY + Room->RoomHeight && y + RoomHeight > Room->CurrentY)
             {
-                
+                bInvalid = true;
+                break;
             }
+        }
+
+        if(!bInvalid)
+        {
+            CreateRoom(x, y);
+            return true;
         }
     }
 
     return false;
+}
+
+void UMazeRoom::CreateRoom(const int x, const int y)
+{
+    for(int i = 0; i < RoomWidth; i++)
+    {
+        for(int j = 0; j < RoomHeight; j++)
+        {
+            GameMode->Grid[GameMode->XYToIndex(i + x, j + y)] = ROOM_GROUND;//RoomWalls[GameMode->XYToIndex(i, j)];
+        }
+    }
+
+    CurrentX = x;
+    CurrentY = y;
 }

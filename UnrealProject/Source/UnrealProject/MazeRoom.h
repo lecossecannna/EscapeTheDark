@@ -21,8 +21,10 @@ public:
 	void	SetWalls(AUnrealProjectGameMode* Mode, int* Walls, int Height, int Width);
 
 	bool	GenerateRoom();
+	void	CreateRoom(int x, int y);
 
 protected:
+
 	AUnrealProjectGameMode* GameMode = nullptr;
 
 	int* RoomWalls;
