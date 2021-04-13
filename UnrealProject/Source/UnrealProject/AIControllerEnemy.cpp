@@ -8,6 +8,8 @@
 
 void AAIControllerEnemy::BeginPlay()
 {
+	Super::BeginPlay();
+	
 	bool Success = RunBehaviorTree(EnemyBehavior);
 	if (!Success)
 	{
@@ -16,9 +18,4 @@ void AAIControllerEnemy::BeginPlay()
 	}
 	GetBlackboardComponent()->SetValueAsObject(FName("PlayerRef"), GetWorld()->GetFirstPlayerController()->GetPawn());
 
-}
-
-AAIControllerEnemy::AAIControllerEnemy()
-{
-	
 }
