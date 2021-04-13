@@ -36,7 +36,7 @@ ANeon::ANeon()
 	if (Light)
 	{
 		Light->SetupAttachment(RootComponent);
-		Light->SetIntensity(0);
+		Light->SetVisibility(false);
 	}
 
 	//CreateSound
@@ -62,6 +62,12 @@ void ANeon::DesactiveLight()
 {
 	Light->SetVisibility(false);
 	btest = false;
+}
+
+bool ANeon::IsVisible()
+{
+
+	return Light->IsVisible();
 }
 
 void ANeon::ActiveLight()

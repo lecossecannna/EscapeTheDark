@@ -171,11 +171,13 @@ void AUnrealProjectCharacter::ActiveInteractionBox()
         for(auto*  actor : actors) 
 	{
 		UInteractiveObject* component = actor->FindComponentByClass<UInteractiveObject>();
-		if(component) 
-		{
-		 component->bIsSelected = true;
-		}
+		  if(component) {
+			  component->bIsSelected = true;
+		  }
         }
+	//FindComponentByClass<UInteractiveObject>(actors);
+	//GetWorldTimerManager().SetTimer(HitTimeHandleInteraction, this, &AUnrealProjectCharacter::DesactiveInteractionBox, 1.f);
+
 }
 
 void AUnrealProjectCharacter::DesactiveInteractionBox()

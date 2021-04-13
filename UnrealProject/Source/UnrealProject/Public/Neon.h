@@ -13,7 +13,7 @@ class UNREALPROJECT_API ANeon : public AActor
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Canon")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Collider")
 	UBoxComponent* Collision = nullptr;
 	
 	/** Pawn mesh*/
@@ -32,6 +32,7 @@ public:
 	ANeon();
 	void StartAnimation();
 
+	bool IsVisible();
 	void ActiveLight();
 	void AnimationEnd();
 	void DesactiveLight();
