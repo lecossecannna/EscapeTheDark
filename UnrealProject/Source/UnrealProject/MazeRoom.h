@@ -3,20 +3,36 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+
+#include <random>
+
 #include "MazeRoom.generated.h"
 
+class AUnrealProjectGameMode;
 UCLASS()
-class UNREALPROJECT_API AMazeRoom : public AActor
+class UNREALPROJECT_API UMazeRoom : public UActorComponent
 {
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
-	AMazeRoom();
+	UMazeRoom();
+	~UMazeRoom();
+
+	void	SetWalls(AUnrealProjectGameMode* Mode, int* Walls, int Height, int Width);
+
+	bool	GenerateRoom();
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	AUnrealProjectGameMode* GameMode = nullptr;
 
+	int* RoomWalls;
+
+	int RoomHeight;
+	int RoomWidth;
+
+	int	CurrentX = -1;
+	int	CurrentY = -1;
+
+	static std::random_device Rd;
+	static std::mt19937 Gen;
 };

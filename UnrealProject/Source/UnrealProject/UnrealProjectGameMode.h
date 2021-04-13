@@ -11,6 +11,16 @@
 #define WEST	2
 #define EAST	3
 
+UENUM()
+enum EModuleType
+{
+    GROUND,
+	WALL,
+	ROOM_GROUND,
+	ROOM_WALL
+};
+
+class UMazeRoom;
 UCLASS(minimalapi)
 class AUnrealProjectGameMode : public AGameModeBase
 {
@@ -25,12 +35,14 @@ public:
     /**
 	 * Should be called only once.
 	 */
-	void	GenerateMaze();
+	void	GenerateMaze() const;
 
 	float	GetModuleSize() const { return ModuleSize; }
 
 protected:
-	void	CreateModules();
+	friend	UMazeRoom;
+
+	void	CreateModules() const;
 
 	void	ResetGrid() const;
     int		XYToIndex(int x, int y) const;
@@ -76,6 +88,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<class AMazeModule> LineModule = nullptr;
 
+	TArray<UMazeRoom*> Rooms;
 };
 
 

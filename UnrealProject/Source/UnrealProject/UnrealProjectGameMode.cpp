@@ -35,20 +35,20 @@ void AUnrealProjectGameMode::BeginPlay()
     CreateModules();
 }
 
-void AUnrealProjectGameMode::GenerateMaze()
+void AUnrealProjectGameMode::GenerateMaze() const
 {
     srand(time(nullptr));
     ResetGrid();
     Visit(1, 1);
 }
 
-void AUnrealProjectGameMode::CreateModules()
+void AUnrealProjectGameMode::CreateModules() const
 {
     for(int iHeight = 0; iHeight < Height; iHeight++)
     {
         for(int jWidth = 0; jWidth < Width; jWidth++)
         {
-            if(Grid[XYToIndex(jWidth, iHeight)] == 0)
+            if(Grid[XYToIndex(jWidth, iHeight)] == GROUND)
             {
                 FActorSpawnParameters SpawnParameters;
                 SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -63,10 +63,10 @@ void AUnrealProjectGameMode::CreateModules()
 
 void AUnrealProjectGameMode::ResetGrid() const
 {
-    // Fills the grid with walls ('1' characters).
+    // Fills the grid with walls.
     for (int i=0; i < Width * Height; ++i)
     {
-        Grid[i] = 1;
+        Grid[i] = WALL;
     }
 }
 
@@ -137,11 +137,11 @@ void AUnrealProjectGameMode::Visit(int x, int y) const
         const int y2 = y + (dy << 1);
         if (IsInBounds(x2, y2))
         {
-            if (Grid[XYToIndex(x2, y2)] == 1)
+            if (Grid[XYToIndex(x2, y2)] == WALL)
             {
                 // (x2,y2) has not been visited yet...knock down the
                 // wall between my current position and that position
-                Grid[XYToIndex(x2 - dx, y2 - dy)] = 0;
+                Grid[XYToIndex(x2 - dx, y2 - dy)] = GROUND;
                 // Recursively Visit (x2,y2)
                 Visit(x2, y2);
             }
@@ -164,22 +164,22 @@ int AUnrealProjectGameMode::NumberOfWalls(const int x, const int y) const
 {
     int WallsCount = 0;
 
-    if(Grid[XYToIndex(x - 1, y)] == 1)
+    if(Grid[XYToIndex(x - 1, y)] == WALL)
     {
         WallsCount++;
     }
 
-    if (Grid[XYToIndex(x + 1, y)] == 1)
+    if (Grid[XYToIndex(x + 1, y)] == WALL)
     {
         WallsCount++;
     }
 
-    if (Grid[XYToIndex(x, y - 1)] == 1)
+    if (Grid[XYToIndex(x, y - 1)] == WALL)
     {
         WallsCount++;
     }
 
-    if (Grid[XYToIndex(x, y + 1)] == 1)
+    if (Grid[XYToIndex(x, y + 1)] == WALL)
     {
         WallsCount++;
     }
@@ -189,19 +189,19 @@ int AUnrealProjectGameMode::NumberOfWalls(const int x, const int y) const
 
 void AUnrealProjectGameMode::BreakDeadEndWall(const int x, const int y) const
 {
-    if (Grid[XYToIndex(x - 1, y)] == 0)
+    if (Grid[XYToIndex(x - 1, y)] == GROUND)
     {
         BreakWall(x + 1, y);
     }
-    else if (Grid[XYToIndex(x + 1, y)] == 0)
+    else if (Grid[XYToIndex(x + 1, y)] == GROUND)
     {
         BreakWall(x - 1, y);
     }
-    else if (Grid[XYToIndex(x, y - 1)] == 0)
+    else if (Grid[XYToIndex(x, y - 1)] == GROUND)
     {
         BreakWall(x, y + 1);
     }
-    else if (Grid[XYToIndex(x, y + 1)] == 0)
+    else if (Grid[XYToIndex(x, y + 1)] == GROUND)
     {
         BreakWall(x, y - 1);
     }
@@ -214,6 +214,6 @@ void AUnrealProjectGameMode::BreakWall(const int x, const int y) const
         return;
     }
 
-    Grid[XYToIndex(x, y)] = 0;
+    Grid[XYToIndex(x, y)] = GROUND;
 }
 
