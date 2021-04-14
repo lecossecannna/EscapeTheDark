@@ -39,6 +39,8 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 		UAudioComponent* SoundDefault = nullptr;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = DontTuch)
+		bool bContactPlayer = false;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

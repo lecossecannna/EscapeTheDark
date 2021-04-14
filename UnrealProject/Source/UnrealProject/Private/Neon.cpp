@@ -5,7 +5,6 @@
 
 #include "Components/AudioComponent.h"
 #include "Components/BoxComponent.h"
-#include "Components/PointLightComponent.h"
 #include "Components/SpotLightComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
@@ -55,7 +54,10 @@ ANeon::ANeon()
 
 void ANeon::StartAnimation()
 {
-	bAnimation = true;
+	if(Light->IsVisible())
+	{
+		bAnimation = true;
+	}
 }
 
 void ANeon::DesactiveLight()
@@ -66,7 +68,6 @@ void ANeon::DesactiveLight()
 
 bool ANeon::IsVisible()
 {
-
 	return Light->IsVisible();
 }
 
@@ -111,13 +112,14 @@ void ANeon::Tick(float DeltaTime)
 
 void ANeon::RunAnimation()
 {
-  if(btest == false ) {
+  if(btest == false )
+  {
 	  btest = true;
 	  float timingToDesactive = FMath::RandRange(0.1f, MaxTimingToDesactive);
 	  GetWorldTimerManager().SetTimer(HitTimeHandleEnd, this, &ANeon::DesactiveLight, timingToDesactive);
   }
   ActiveLight();
-float timingToActive = FMath::RandRange(0.2f, MaxTimingToActive);
-GetWorldTimerManager().SetTimer(HitTimeHandleStart, this, &ANeon::RunAnimation, timingToActive);
+	float timingToActive = FMath::RandRange(0.2f, MaxTimingToActive);
+	GetWorldTimerManager().SetTimer(HitTimeHandleStart, this, &ANeon::RunAnimation, timingToActive);
 }
 

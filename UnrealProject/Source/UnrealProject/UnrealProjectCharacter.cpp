@@ -177,7 +177,7 @@ void AUnrealProjectCharacter::DesactiveLight()
 void AUnrealProjectCharacter::AnimLight(float DeltaSeconds)
 {
 	AlphaLerpLight += SpeedTransition * DeltaSeconds;
-	FMath::Clamp(AlphaLerpLight, 0.f, 1.f); 
+	AlphaLerpLight = FMath::Clamp(AlphaLerpLight, 0.f, 1.f);
 	float intensity = FMath::Lerp(StartLightBrightess, LightBrightess, AlphaLerpLight);
 	Light->SetIntensity(intensity);
 }
