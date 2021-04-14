@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "UnrealProjectCharacter.generated.h"
 
+class UBoxComponent;
 class UPointLightComponent;
 class UInputComponent;
 
@@ -26,13 +27,6 @@ class AUnrealProjectCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FirstPersonCameraComponent;
 
-	/** Motion controller (right hand) */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UMotionControllerComponent* R_MotionController;
-
-	/** Motion controller (left hand) */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UMotionControllerComponent* L_MotionController;
 	
 	//Sounds
 	UPROPERTY(VisibleAnywhere, Category = "Sound")
@@ -41,6 +35,8 @@ class AUnrealProjectCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, Category = "Sound")
 		UAudioComponent* SoundMatch = nullptr; 
 public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "InteractionBox")
+		UBoxComponent* InteractionBox = nullptr;
 	AUnrealProjectCharacter();
 
 	// Called every frame
@@ -88,7 +84,9 @@ protected:
 	void ActiveLight();
 	void DesactiveLight();
 	void AnimLight(float DeltaSeconds);
-	
+
+	void ActiveInteractionBox();
+	void DesactiveInteractionBox();
 	/**
 	 * Called via input to turn at a given rate.
 	 * @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
@@ -117,6 +115,8 @@ private:
 	FTimerHandle HitTimeHandle;
 	float HitTiming = 1.5f;
 
+	FTimerHandle HitTimeHandleInteraction;
+	
 	float AlphaLerpLight = 0.0f;
 };
 

@@ -15,9 +15,6 @@ class UNREALPROJECT_API AAIControllerEnemy : public AAIController
 	GENERATED_BODY()
 public:
 	virtual void BeginPlay() override;
-
-	AAIControllerEnemy();
-
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = EnemyAI)
 		class UBehaviorTree* EnemyBehavior = nullptr;
