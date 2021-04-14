@@ -11,6 +11,7 @@
 #define WEST	2
 #define EAST	3
 
+class LogicItens;
 UENUM()
 enum EModuleType
 {
@@ -41,6 +42,9 @@ public:
 
 	float	GetModuleSize() const { return ModuleSize; }
 
+	UFUNCTION(BlueprintCallable)
+	TArray<int>	GetItems() const;
+
 protected:
 	friend	UMazeRoom;
 
@@ -62,6 +66,7 @@ protected:
 
 	void	GenerateLights();
 
+	void	SetupSpawn();
 	bool	IsRoom(int x, int y);
 	bool	LightNotNear(int x, int y);
 	AActor*	PlaceLight(float x, float y) const;
@@ -71,6 +76,8 @@ protected:
 	int* Grid;
 	int* RoomsGrid;
 	TArray<FVector2D>	LightsLocation;
+
+	LogicItens* NeededItems;
 
     /**
 	 * Maze's width measured in number of modules.
@@ -102,6 +109,11 @@ protected:
 	UPROPERTY(EditAnywhere)
 	int	ModuleSize = 300;
 
+	/* Spawn */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class AEndDoor> EndDoorType = nullptr;
+
+	/* Maze modules */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<class AMazeModule> LineModule = nullptr;
 

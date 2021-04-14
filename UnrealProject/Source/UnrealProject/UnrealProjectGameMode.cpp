@@ -6,7 +6,8 @@
 #include <ctime>
 #include <string>
 
-
+#include "EndDoor.h"
+#include "LogicItens.h"
 #include "LightButton.h"
 #include "MazeModule.h"
 #include "Neon.h"
@@ -36,10 +37,13 @@ AUnrealProjectGameMode::AUnrealProjectGameMode() : Super()
     Rooms.Add(CreateDefaultSubobject<UMazeRoom>(FName("Room2")));
     Rooms.Add(CreateDefaultSubobject<UMazeRoom>(FName("Room3")));
     Rooms.Add(CreateDefaultSubobject<UMazeRoom>(FName("Room4")));
+
 }
 
 void AUnrealProjectGameMode::BeginPlay()
 {
+    NeededItems = new LogicItens;
+
     DrawRooms();
 
     GenerateMaze();
@@ -61,6 +65,8 @@ void AUnrealProjectGameMode::BeginPlay()
     CreateModules();
 
     GenerateLights();
+
+    SetupSpawn();
 }
 
 void AUnrealProjectGameMode::GenerateMaze() const
@@ -68,6 +74,11 @@ void AUnrealProjectGameMode::GenerateMaze() const
     srand(time(nullptr));
     ResetGrid();
     Visit(1, 1);
+}
+
+TArray<int> AUnrealProjectGameMode::GetItems() const
+{
+    return NeededItems->ItensConditionWin;
 }
 
 void AUnrealProjectGameMode::DrawRooms()
@@ -404,6 +415,73 @@ void AUnrealProjectGameMode::GenerateLights()
     PlaceRoomLights();
 }
 
+void AUnrealProjectGameMode::SetupSpawn()
+{
+    UMazeRoom* SpawnRoom = Rooms[0];
+
+    FActorSpawnParameters SpawnParameters;
+    SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+    FRotator DoorRotation = FRotator::ZeroRotator;
+
+    const int DoorX = SpawnRoom->CurrentX + SpawnRoom->RoomWidth / 2;
+    const int DoorY = SpawnRoom->CurrentY + SpawnRoom->RoomHeight / 2;
+
+    FTransform Transform(DoorRotation, FVector{ MazeX + DoorX * ModuleSize, MazeY + DoorY * ModuleSize, 0 });
+
+    bool bDoorPlaced = false;
+    for (int j = 0; j < SpawnRoom->RoomHeight; j++)
+    {
+        if (Grid[XYToIndex(SpawnRoom->CurrentX + SpawnRoom->RoomWidth, SpawnRoom->CurrentY + j)] == WALL) // Valid door
+        {
+            Transform = FTransform(DoorRotation, FVector{ MazeX + (SpawnRoom->CurrentX + SpawnRoom->RoomWidth - 0.5f) * ModuleSize, MazeY + (SpawnRoom->CurrentY + j) * ModuleSize, 0 });
+
+            bDoorPlaced = true;
+            break;
+        }
+    }
+
+    if(!bDoorPlaced)
+    for (int j = 0; j < SpawnRoom->RoomHeight; j++)
+    {
+        if (Grid[XYToIndex(SpawnRoom->CurrentX - 1, SpawnRoom->CurrentY + j)] == WALL)
+        {
+            DoorRotation.Yaw = 180;
+            Transform = FTransform(DoorRotation, FVector{ MazeX + (SpawnRoom->CurrentX - 0.5f) * ModuleSize, MazeY + (SpawnRoom->CurrentY + j) * ModuleSize, 0 });
+            bDoorPlaced = true;
+            break;
+        }
+    }
+
+
+    if (!bDoorPlaced)
+    for (int j = 0; j < SpawnRoom->RoomWidth; j++) 
+    {
+        if (Grid[XYToIndex(SpawnRoom->CurrentX + j, SpawnRoom->CurrentY - 1)] == WALL) // Valid door
+        {
+            DoorRotation.Yaw = -90;
+            Transform = FTransform(DoorRotation, FVector{ MazeX + (SpawnRoom->CurrentX + j) * ModuleSize, MazeY + (SpawnRoom->CurrentY - 0.5f) * ModuleSize, 0 });
+            bDoorPlaced = true;
+            break;
+        }
+    }
+
+    if (!bDoorPlaced)
+    for (int j = 0; j < SpawnRoom->RoomWidth; j++) 
+    {
+        if (Grid[XYToIndex(SpawnRoom->CurrentX + j, SpawnRoom->CurrentY + SpawnRoom->RoomHeight)] == WALL) // Valid door
+        {
+            DoorRotation.Yaw = 90;
+            Transform = FTransform(DoorRotation, FVector{ MazeX + (SpawnRoom->CurrentX + j) * ModuleSize, MazeY + (SpawnRoom->CurrentY + SpawnRoom->RoomHeight - 0.5f) * ModuleSize, 0 });
+            bDoorPlaced = true;
+            break;
+        }
+    }
+
+
+    GetWorld()->SpawnActor(EndDoorType, &Transform, SpawnParameters);
+}
+
 void AUnrealProjectGameMode::GenerateDoors()
 {
 
@@ -665,9 +743,9 @@ void AUnrealProjectGameMode::PlaceRoomLights()
 
         for (int j = 0; j < Room->RoomHeight; j++) // Left wall
         {
-            if (Grid[XYToIndex(Room->CurrentX + Room->RoomWidth + 1, Room->CurrentY + j)] == WALL) // Valid door
+            if (Grid[XYToIndex(Room->CurrentX + Room->RoomWidth, Room->CurrentY + j)] == WALL) // Valid door
             {
-                const FTransform Transform(Rotation, FVector{ MazeX + (Room->CurrentX + Room->RoomWidth + 0.5f) * ModuleSize, MazeY + (Room->CurrentY + j) * ModuleSize, SwitchHeight });
+                const FTransform Transform(Rotation, FVector{ MazeX + (Room->CurrentX + Room->RoomWidth - 0.5f) * ModuleSize, MazeY + (Room->CurrentY + j) * ModuleSize, SwitchHeight });
 
                 Switches.Add(Cast<ALightButton>(GetWorld()->SpawnActor(SwitchType, &Transform, SpawnParameters)));
 
@@ -689,9 +767,9 @@ void AUnrealProjectGameMode::PlaceRoomLights()
 
         for (int j = 0; j < Room->RoomWidth; j++) // Left wall
         {
-            if (Grid[XYToIndex(Room->CurrentX + j, Room->CurrentY + Room->RoomHeight + 1)] == WALL) // Valid door
+            if (Grid[XYToIndex(Room->CurrentX + j, Room->CurrentY + Room->RoomHeight)] == WALL) // Valid door
             {
-                const FTransform Transform(Rotation, FVector{ MazeX + (Room->CurrentX + j) * ModuleSize, MazeY + (Room->CurrentY + Room->RoomHeight + 0.5f) * ModuleSize, SwitchHeight });
+                const FTransform Transform(Rotation, FVector{ MazeX + (Room->CurrentX + j) * ModuleSize, MazeY + (Room->CurrentY + Room->RoomHeight - 0.5f) * ModuleSize, SwitchHeight });
 
                 Switches.Add(Cast<ALightButton>(GetWorld()->SpawnActor(SwitchType, &Transform, SpawnParameters)));
 
