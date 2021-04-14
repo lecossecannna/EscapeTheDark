@@ -11,6 +11,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemPickUp, AUnrealProjectCharact
 
 class UBoxComponent;
 class UPointLightComponent;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnGameOver);
 class UInputComponent;
 
 UCLASS(config=Game)
@@ -49,6 +50,9 @@ public:
 protected:
 	virtual void BeginPlay();
 
+	UPROPERTY(BlueprintAssignable)
+		FOnGameOver    OnGameOver;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UMG Game")
 		TSubclassOf<UUserWidget> StartingWidgetClass;
 
@@ -64,7 +68,7 @@ public:
 	float BaseLookUpRate;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = PlayerLight)
-		float LightBrightess = 100.f;
+		float LightBrightess = 1000.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = PlayerLight)
 		float StartLightBrightess = 100000.f;
@@ -73,13 +77,15 @@ public:
 		float LightDuration = 5.f;
 
 	//Alpha used in Lerp in AnimLight
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = PlayerLight)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = PlayerLight, meta =(ClampMin = "0", ClampMax = "1"))
 	float SpeedTransition = 0.5;
 	
 	/** Whether to use motion controller location for aiming. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	uint32 bUsingMotionControllers : 1;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SpeedPlayer)
+		bool PlayerLose = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SpeedPlayer)
 		float RunSpeed = 1200;
