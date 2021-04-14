@@ -14,9 +14,13 @@
 UENUM()
 enum EModuleType
 {
-    GROUND,
+	GROUND,
 	WALL,
-	ROOM_GROUND
+	ROOM_GROUND,
+	DOOR_UP,
+	DOOR_DOWN,
+	DOOR_LEFT,
+	DOOR_RIGHT
 };
 
 class UMazeRoom;
@@ -40,6 +44,8 @@ public:
 protected:
 	friend	UMazeRoom;
 
+	void	DrawRooms();
+
 	void	CreateModules() const;
 
 	void	ResetGrid() const;
@@ -51,7 +57,11 @@ protected:
 	void	BreakDeadEndWall(int x, int y) const;
 	void	BreakWall(int x, int y) const;
 
+	void	GenerateDoors();
+	void	CreateWall(FTransform Transform);
+
 	int* Grid;
+	int* RoomsGrid;
 
     /**
 	 * Maze's width measured in number of modules.
@@ -98,6 +108,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<class AMazeModule> CrossroadsModule = nullptr;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class AMazeModule> SimpleWall = nullptr;
+
+	UPROPERTY(VisibleAnywhere)
 	TArray<UMazeRoom*>	Rooms;
 };
 

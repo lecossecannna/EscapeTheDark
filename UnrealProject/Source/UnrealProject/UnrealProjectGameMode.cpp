@@ -7,6 +7,7 @@
 #include <string>
 
 #include "MazeModule.h"
+#include "SimpleWall.h"
 #include "MazeRoom.h"
 #include "UnrealProjectHUD.h"
 #include "UObject/ConstructorHelpers.h"
@@ -25,63 +26,35 @@ AUnrealProjectGameMode::AUnrealProjectGameMode() : Super()
     TModule = AMazeModule::StaticClass();
 
     Grid = new int[Width * Height];
+    RoomsGrid = new int[Width * Height];
 
+    Rooms.Reserve(5);
     Rooms.Add(CreateDefaultSubobject<UMazeRoom>(FName("Room0")));
-    int Room1[32]{ 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 , 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 , 2, 2, 2, 2 };
-    Rooms[0]->SetWalls(this, Room1, 8, 4);
-
     Rooms.Add(CreateDefaultSubobject<UMazeRoom>(FName("Room1")));
-    int Room2[32]{ 0, 0, 2, 2, 2, 2, 2, 2,
-                    2, 2, 2, 2, 2, 2, 2, 2,
-                    2, 2, 2, 2, 2, 2, 2, 2,
-                    2, 2, 2, 2 ,2, 2, 2, 2 };
-    Rooms[1]->SetWalls(this, Room2, 8, 4);
-
     Rooms.Add(CreateDefaultSubobject<UMazeRoom>(FName("Room2")));
-    int Room3[32]{ 0, 0, 2, 2, 2, 2, 2, 2,
-                    2, 2, 2, 2, 2, 2, 2, 2,
-                    2, 2, 2, 2, 2, 2, 2, 2,
-                    2, 2, 2, 2 ,2, 2, 2, 2 };
-    Rooms[2]->SetWalls(this, Room3, 8, 4);
-
     Rooms.Add(CreateDefaultSubobject<UMazeRoom>(FName("Room3")));
-    int Room4[32]{ 0, 0, 2, 2, 2, 2, 2, 2,
-                    2, 2, 2, 2, 2, 2, 2, 2,
-                    2, 2, 2, 2, 2, 2, 2, 2,
-                    2, 2, 2, 2 ,2, 2, 2, 2 };
-    Rooms[3]->SetWalls(this, Room4, 8, 4);
-
     Rooms.Add(CreateDefaultSubobject<UMazeRoom>(FName("Room4")));
-    int Room5[32]{ 0, 0, 2, 2, 2, 2, 2, 2,
-                    2, 2, 2, 2, 2, 2, 2, 2,
-                    2, 2, 2, 2, 2, 2, 2, 2,
-                    2, 2, 2, 2 ,2, 2, 2, 2 };
-    Rooms[4]->SetWalls(this, Room5, 8, 4);
 }
 
 void AUnrealProjectGameMode::BeginPlay()
 {
+    DrawRooms();
+
     GenerateMaze();
 
     auto TempRooms = Rooms;
     for(int i = TempRooms.Num() - 1; i >= 0; i--)
     {
+        UE_LOG(LogTemp, Warning, TEXT("Generating Room"));
         if(!TempRooms[i]->GenerateRoom())
         {
+            UE_LOG(LogTemp, Warning, TEXT("Unable to place Room"));
             TempRooms.RemoveAt(i);
         }
     }
-
     Rooms = TempRooms;
 
-    //for (auto It = Rooms.begin(); It != Rooms.end(); ++It)
-    //{
-    //    if (!(*It)->GenerateRoom())
-    //    {
-    //        Rooms.Remove(*It);
-    //        ++It;
-    //    }
-    //}
+    GenerateDoors();
 
     CreateModules();
 }
@@ -93,13 +66,54 @@ void AUnrealProjectGameMode::GenerateMaze() const
     Visit(1, 1);
 }
 
+void AUnrealProjectGameMode::DrawRooms()
+{
+    int Room1[128]{ 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 , 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 , 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 , 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 , 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 , 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 , 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 , 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 , 2, 2, 2, 2 };
+    Rooms[0]->SetWalls(this, Room1, 4, 8, 0);
+
+    int Room2[32]{ 0, 0, 2, 2, 2, 2, 2, 2,
+                    2, 2, 2, 2, 2, 2, 2, 2,
+                    2, 2, 2, 2, 2, 2, 2, 2,
+                    2, 2, 2, 2 ,2, 2, 2, 2 };
+    Rooms[1]->SetWalls(this, Room2, 4, 8, 0);
+
+    int Room3[32]{ 0, 0, 2, 2, 2, 2, 2, 2,
+                    2, 2, 2, 2, 2, 2, 2, 2,
+                    2, 2, 2, 2, 2, 2, 2, 2,
+                    2, 2, 2, 2 ,2, 2, 2, 2 };
+    Rooms[2]->SetWalls(this, Room3, 4, 8, 0);
+
+    int Room4[32]{ 0, 0, 2, 2, 2, 2, 2, 2,
+                    2, 2, 2, 2, 2, 2, 2, 2,
+                    2, 2, 2, 2, 2, 2, 2, 2,
+                    2, 2, 2, 2 ,2, 2, 2, 2 };
+    Rooms[3]->SetWalls(this, Room4, 1, 1, 0);
+
+    int Room5[32]{ 0, 0, 2, 2, 2, 2, 2, 2,
+                    2, 2, 2, 2, 2, 2, 2, 2,
+                    2, 2, 2, 2, 2, 2, 2, 2,
+                    2, 2, 2, 2 ,2, 2, 2, 2 };
+    Rooms[4]->SetWalls(this, Room5, 1, 1, 0);
+}
+
 void AUnrealProjectGameMode::CreateModules() const
 {
     for(int iHeight = 0; iHeight < Height; iHeight++)
     {
         for(int jWidth = 0; jWidth < Width; jWidth++)
         {
-            if (Grid[XYToIndex(jWidth, iHeight)] == GROUND || Grid[XYToIndex(jWidth, iHeight)] == ROOM_GROUND)
+            if(RoomsGrid[XYToIndex(jWidth, iHeight)] >= DOOR_UP && RoomsGrid[XYToIndex(jWidth, iHeight)] <= DOOR_RIGHT)
+            {
+
+                FActorSpawnParameters SpawnParameters;
+                SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+                const FTransform Transform(FRotator::ZeroRotator, FVector{ MazeX + jWidth * ModuleSize, MazeY + iHeight * ModuleSize, 4000 });
+
+                GetWorld()->SpawnActor(DeadEndModule, &Transform, SpawnParameters);
+            }
+
+            if (Grid[XYToIndex(jWidth, iHeight)] == GROUND || Grid[XYToIndex(jWidth, iHeight)] == ROOM_GROUND/* && (RoomsGrid[XYToIndex(jWidth, iHeight)] < DOOR_UP || RoomsGrid[XYToIndex(jWidth, iHeight)] > DOOR_RIGHT)*/)
             {
                 EModuleType ModuleType = static_cast<EModuleType>(Grid[XYToIndex(jWidth, iHeight)]);
 
@@ -112,7 +126,7 @@ void AUnrealProjectGameMode::CreateModules() const
                     if (Grid[XYToIndex(jWidth, iHeight - 1)] == Grid[XYToIndex(jWidth, iHeight + 1)]
                         || Grid[XYToIndex(jWidth - 1, iHeight)] == Grid[XYToIndex(jWidth + 1, iHeight)] ) // Line
                     {
-                        if (Grid[XYToIndex(jWidth, iHeight + 1)] == ModuleType)
+                        if (Grid[XYToIndex(jWidth, iHeight + 1)] == ModuleType || RoomsGrid[XYToIndex(jWidth, iHeight + 1)] >= DOOR_UP && RoomsGrid[XYToIndex(jWidth, iHeight + 1)] <= DOOR_RIGHT)
                         {
                             ModuleRotation.Yaw = 90;
                         }
@@ -121,9 +135,9 @@ void AUnrealProjectGameMode::CreateModules() const
                     }
                     else // Turn
                     {
-                        if (Grid[XYToIndex(jWidth, iHeight + 1)] != ModuleType)
+                        if (Grid[XYToIndex(jWidth, iHeight + 1)] != ModuleType || RoomsGrid[XYToIndex(jWidth, iHeight - 1)] == DOOR_UP)
                         {
-                            if (Grid[XYToIndex(jWidth + 1, iHeight)] != ModuleType)
+                            if (Grid[XYToIndex(jWidth + 1, iHeight)] != ModuleType || RoomsGrid[XYToIndex(jWidth - 1, iHeight)] == DOOR_RIGHT)
                             {
                                 ModuleRotation.Yaw = 90;
                             }
@@ -134,7 +148,7 @@ void AUnrealProjectGameMode::CreateModules() const
                         }
                         else
                         {
-                            if (Grid[XYToIndex(jWidth + 1, iHeight)] != ModuleType)
+                            if (Grid[XYToIndex(jWidth + 1, iHeight)] != ModuleType || RoomsGrid[XYToIndex(jWidth - 1, iHeight)] == DOOR_RIGHT)
                             {
                                 ModuleRotation.Yaw = 0;
                             }
@@ -148,15 +162,15 @@ void AUnrealProjectGameMode::CreateModules() const
                 }
                 else if (WallsCount == 1) // T
                 {
-                    if (Grid[XYToIndex(jWidth, iHeight - 1)] != ModuleType)
+                    if (Grid[XYToIndex(jWidth, iHeight - 1)] != ModuleType || RoomsGrid[XYToIndex(jWidth, iHeight + 1)] == DOOR_DOWN)
                     {
                         ModuleRotation.Yaw = -90;
                     }
-                    else if (Grid[XYToIndex(jWidth, iHeight + 1)] != ModuleType)
+                    else if (Grid[XYToIndex(jWidth, iHeight + 1)] != ModuleType || RoomsGrid[XYToIndex(jWidth, iHeight - 1)] == DOOR_UP)
                     {
                         ModuleRotation.Yaw = 90;
                     }
-                    else if(Grid[XYToIndex(jWidth - 1, iHeight)] != ModuleType)
+                    else if(Grid[XYToIndex(jWidth - 1, iHeight)] != ModuleType || RoomsGrid[XYToIndex(jWidth + 1, iHeight)] == DOOR_LEFT)
                     {
                         ModuleRotation.Yaw = 180;
                     }
@@ -165,15 +179,15 @@ void AUnrealProjectGameMode::CreateModules() const
                 }
                 else if (WallsCount == 3) // Dead end
                 {
-                    if (Grid[XYToIndex(jWidth, iHeight - 1)] == ModuleType)
+                    if (Grid[XYToIndex(jWidth, iHeight - 1)] == ModuleType || RoomsGrid[XYToIndex(jWidth, iHeight + 1)] == DOOR_DOWN)
                     {
                         ModuleRotation.Yaw = 180;
                     }
-                    else if (Grid[XYToIndex(jWidth, iHeight + 1)] == ModuleType)
+                    else if (Grid[XYToIndex(jWidth, iHeight + 1)] == ModuleType || RoomsGrid[XYToIndex(jWidth, iHeight - 1)] == DOOR_UP)
                     {
                         ModuleRotation.Yaw = 0;
                     }
-                    else if (Grid[XYToIndex(jWidth - 1, iHeight)] == ModuleType)
+                    else if (Grid[XYToIndex(jWidth - 1, iHeight)] == ModuleType || RoomsGrid[XYToIndex(jWidth + 1, iHeight)] == DOOR_LEFT)
                     {
                         ModuleRotation.Yaw = 90;
                     }
@@ -208,6 +222,7 @@ void AUnrealProjectGameMode::ResetGrid() const
     for (int i=0; i < Width * Height; ++i)
     {
         Grid[i] = WALL;
+        RoomsGrid[i] = -1;
     }
 }
 
@@ -307,22 +322,26 @@ int AUnrealProjectGameMode::NumberOfWalls(const int x, const int y, const EModul
 
     if(x - 1 < 0 || Grid[XYToIndex(x - 1, y)] != ModuleType)
     {
-        WallsCount++;
+        if(ModuleType == ROOM_GROUND && RoomsGrid[XYToIndex(x, y)] != DOOR_LEFT || ModuleType == GROUND && RoomsGrid[XYToIndex(x - 1, y)] != DOOR_RIGHT)
+            WallsCount++;
     }
 
     if (x + 1 > Width || Grid[XYToIndex(x + 1, y)] != ModuleType)
     {
-        WallsCount++;
+        if (ModuleType == ROOM_GROUND && RoomsGrid[XYToIndex(x, y)] != DOOR_RIGHT || ModuleType == GROUND && RoomsGrid[XYToIndex(x + 1, y)] != DOOR_LEFT)
+            WallsCount++;
     }
 
     if (y - 1 < 0 || Grid[XYToIndex(x, y - 1)] != ModuleType)
     {
-        WallsCount++;
+        if (ModuleType == ROOM_GROUND && RoomsGrid[XYToIndex(x, y)] != DOOR_UP || ModuleType == GROUND && RoomsGrid[XYToIndex(x, y - 1)] != DOOR_DOWN)
+            WallsCount++;
     }
 
     if (y + 1 > Height || Grid[XYToIndex(x, y + 1)] != ModuleType)
     {
-        WallsCount++;
+        if (ModuleType == ROOM_GROUND && RoomsGrid[XYToIndex(x, y)] != DOOR_DOWN || ModuleType == GROUND && RoomsGrid[XYToIndex(x, y + 1)] != DOOR_UP)
+            WallsCount++;
     }
 
     return WallsCount;
@@ -356,5 +375,100 @@ void AUnrealProjectGameMode::BreakWall(const int x, const int y) const
     }
 
     Grid[XYToIndex(x, y)] = GROUND;
+}
+
+void AUnrealProjectGameMode::GenerateDoors()
+{
+
+    for(const auto& Room : Rooms)
+    {
+        //int DoorCount = 0;
+        //if(Room->CurrentX > 0)
+        //{
+        //    bool bDoorFound = false;
+        //    for (int j = 0; j < Room->RoomHeight; j++) // Left wall
+        //    {
+        //        if (Grid[XYToIndex(Room->CurrentX - 1, Room->CurrentY + j)] == GROUND) // Valid door
+        //        {
+        //            if (bDoorFound)
+        //            {
+
+        //                UE_LOG(LogTemp, Warning, TEXT("Creating Wall"));
+        //                CreateWall(FTransform(FRotator(0, -90, 0), { MazeX + Room->CurrentX * ModuleSize, MazeY + (Room->CurrentY + j) * ModuleSize, 0 }));
+        //            }
+        //            else
+        //            {
+        //                RoomsGrid[XYToIndex(Room->CurrentX, Room->CurrentY + j)] = DOOR_LEFT;
+
+        //                DoorCount++;
+        //                bDoorFound = true;
+        //            }
+        //        }
+        //    }
+        //}
+
+        //for (int j = 0; j < Room->RoomHeight; j++) // Right wall
+        //{
+        //    bool bDoorFound = false;
+        //    const int RoomUpX = Room->CurrentX + Room->RoomWidth;
+        //    if (Grid[XYToIndex(RoomUpX + 1, Room->CurrentY + j)] == GROUND) // Valid door
+        //    {
+        //        RoomsGrid[XYToIndex(RoomUpX , Room->CurrentY + j)] = DOOR_RIGHT;
+
+        //        DoorCount++;
+        //        bDoorFound = true;
+        //    }
+
+        //    if (bDoorFound)
+        //        break;
+        //}
+
+        //for (int j = 0; j < Room->RoomWidth; j++) // Down wall
+        //{
+        //    bool bDoorFound = false;
+        //    if (Grid[XYToIndex(Room->CurrentX + j, Room->CurrentY - 1)] == GROUND) // Valid door
+        //    {
+        //        RoomsGrid[XYToIndex(Room->CurrentX + j, Room->CurrentY )] = DOOR_DOWN;
+
+        //        DoorCount++;
+        //        bDoorFound = true;
+        //    }
+
+        //    if (bDoorFound)
+        //        break;
+        //}
+
+        //for (int j = 0; j < Room->RoomWidth; j++) // Up wall
+        //{
+        //    bool bDoorFound = false;
+        //    const int RoomUpY = Room->CurrentY + Room->RoomHeight;
+
+        //    if (Grid[XYToIndex(Room->CurrentX + j, RoomUpY + 1)] == GROUND) // Valid door
+        //    {
+        //        RoomsGrid[XYToIndex(Room->CurrentX + j, RoomUpY)] = DOOR_UP;
+
+        //        DoorCount++;
+        //        bDoorFound = true;
+        //    }
+
+        //    if (bDoorFound)
+        //        break;
+        //}
+
+        //Room->DoorCount = DoorCount;
+
+        //if(DoorCount == 0)
+        //{
+        //    UE_LOG(LogTemp, Error, TEXT("A Room was created without a door"));
+        //}
+    }
+}
+
+void AUnrealProjectGameMode::CreateWall(FTransform Transform)
+{
+    FActorSpawnParameters SpawnParameters;
+    SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+    GetWorld()->SpawnActor(SimpleWall, &Transform, SpawnParameters);
 }
 

@@ -17,7 +17,7 @@ UMazeRoom::~UMazeRoom()
     delete[] RoomWalls;
 }
 
-void UMazeRoom::SetWalls(AUnrealProjectGameMode* Mode, int* Walls, const int Height, const int Width)
+void UMazeRoom::SetWalls(AUnrealProjectGameMode* Mode, int* Walls, const int Height, const int Width, int Index)
 {
     delete[] RoomWalls;
 
@@ -32,6 +32,8 @@ void UMazeRoom::SetWalls(AUnrealProjectGameMode* Mode, int* Walls, const int Hei
     RoomWidth = Width;
 
     GameMode = Mode;
+
+    RoomIndex = Index + 10;
 }
 
 bool UMazeRoom::GenerateRoom()
@@ -67,11 +69,17 @@ bool UMazeRoom::GenerateRoom()
 
 void UMazeRoom::CreateRoom(const int x, const int y)
 {
+
     for(int i = 0; i < RoomWidth; i++)
     {
         for(int j = 0; j < RoomHeight; j++)
         {
-            GameMode->Grid[GameMode->XYToIndex(i + x, j + y)] = ROOM_GROUND;//RoomWalls[GameMode->XYToIndex(i, j)];
+            //if(RoomWalls[GameMode->XYToIndex(i, j)] == ROOM_GROUND)
+            if(true)
+            {
+                GameMode->Grid[GameMode->XYToIndex(i + x, j + y)] = GROUND;
+                GameMode->RoomsGrid[GameMode->XYToIndex(i + x, j + y)] = RoomIndex;
+            }
         }
     }
 
