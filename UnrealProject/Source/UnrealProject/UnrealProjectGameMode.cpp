@@ -12,7 +12,9 @@
 #include "MazeModule.h"
 #include "Neon.h"
 #include "MazeRoom.h"
+#include "UnrealProjectCharacter.h"
 #include "UnrealProjectHUD.h"
+#include "Kismet/GameplayStatics.h"
 #include "UObject/ConstructorHelpers.h"
 
 AUnrealProjectGameMode::AUnrealProjectGameMode() : Super()
@@ -42,6 +44,8 @@ AUnrealProjectGameMode::AUnrealProjectGameMode() : Super()
 
 void AUnrealProjectGameMode::BeginPlay()
 {
+    Super::BeginPlay();
+
     NeededItems = new LogicItens;
 
     DrawRooms();
@@ -67,6 +71,14 @@ void AUnrealProjectGameMode::BeginPlay()
     GenerateLights();
 
     SetupSpawn();
+
+    auto* Player = Cast<AUnrealProjectCharacter>(UGameplayStatics::GetPlayerPawn(this, 1));
+
+    if(Player)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Delegate"))
+        Player->OnItemPickUp.AddDynamic(this, &AUnrealProjectGameMode::CheckWinConditions);
+    }
 }
 
 void AUnrealProjectGameMode::GenerateMaze() const
@@ -79,6 +91,15 @@ void AUnrealProjectGameMode::GenerateMaze() const
 TArray<int> AUnrealProjectGameMode::GetItems() const
 {
     return NeededItems->ItensConditionWin;
+}
+
+void AUnrealProjectGameMode::PlayerRegister(AUnrealProjectCharacter* Player) const
+{
+    if (Player)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Delegate"))
+            Player->OnItemPickUp.AddDynamic(this, &AUnrealProjectGameMode::CheckWinConditions);
+    }
 }
 
 void AUnrealProjectGameMode::DrawRooms()
@@ -784,5 +805,31 @@ void AUnrealProjectGameMode::PlaceRoomLights()
                 Switches[i]->AddNeon(Lights[j]);
             }
         }
+    }
+}
+
+void AUnrealProjectGameMode::CheckWinConditions(AUnrealProjectCharacter* Player)
+{
+    if (Player)
+    {
+        for(int i = 0; i < 3; i++)
+        {
+            bool bFoundNeededItem = false;
+            for (size_t j = 0; j < Player->Itens.Num(); j++)
+            {
+                if(Player->Itens[j] == NeededItems->ItensConditionWin[i])
+                {
+                    bFoundNeededItem = true;
+                    break;
+                }
+            }
+            if(!bFoundNeededItem)
+            {
+                return;
+            }
+        }
+
+        UE_LOG(LogTemp, Warning, TEXT("Won"))
+        OnWin.Broadcast();
     }
 }

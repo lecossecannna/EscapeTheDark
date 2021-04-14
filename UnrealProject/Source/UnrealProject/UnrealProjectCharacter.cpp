@@ -12,6 +12,7 @@
 #include "GameFramework/InputSettings.h"
 #include "Kismet/GameplayStatics.h"
 #include "MotionControllerComponent.h"
+#include "UnrealProjectGameMode.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/AudioComponent.h"
 #include "Components/BoxComponent.h"
@@ -91,6 +92,10 @@ void AUnrealProjectCharacter::BeginPlay()
 	// Call the base class  
 	Super::BeginPlay();
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+
+	auto* GameMode = Cast<AUnrealProjectGameMode>(UGameplayStatics::GetGameMode(this));
+
+	GameMode->PlayerRegister(this);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -199,6 +204,7 @@ void AUnrealProjectCharacter::ActiveInteractionBox()
 				PickItem = true;
 				IndexItem = item->Index;
 				item->Destroy();
+				OnItemPickUp.Broadcast(this);
 			}
 			else
 			{

@@ -11,6 +11,10 @@
 #define WEST	2
 #define EAST	3
 
+
+class AUnrealProjectCharacter;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWin);
+
 class LogicItens;
 UENUM()
 enum EModuleType
@@ -45,6 +49,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	TArray<int>	GetItems() const;
 
+	void	PlayerRegister(AUnrealProjectCharacter* Player) const;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnWin OnWin;
+
 protected:
 	friend	UMazeRoom;
 
@@ -72,6 +81,9 @@ protected:
 	AActor*	PlaceLight(float x, float y) const;
 	void	PlaceCorridorSwitch(AActor* Light, int x, int y);
 	void	PlaceRoomLights();
+
+	UFUNCTION()
+	void	CheckWinConditions(AUnrealProjectCharacter* Player);
 
 	int* Grid;
 	int* RoomsGrid;
