@@ -49,6 +49,7 @@ void ALightButton::BeginPlay()
 void ALightButton::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
         if(InterOBJ->bIsSelected)
         {
 		ActiveLight();
@@ -58,28 +59,30 @@ void ALightButton::Tick(float DeltaTime)
 
 void ALightButton::ActiveLight()
 {
-	if(Neon)
+	if (!SoundActiveButton->IsPlaying())
 	{
-		if (!SoundActiveButton->IsPlaying())
-		{
 		SoundActiveButton->Activate(true);
-		}
-		if(Neon->IsVisible()==false) 
+	}
+
+	for(ANeon* CurrentNeon : Neon)
+	{
+		if (CurrentNeon->IsVisible() == false)
 		{
-		 Neon->ActiveLight();
+			CurrentNeon->ActiveLight();
 		}
 		else
 		{
-		 Neon->DesactiveLight();
+			CurrentNeon->DesactiveLight();
 		}
+	    
 	}
 }
 
-void ALightButton::SetMyNeon(ANeon* TheNeon)
+void ALightButton::AddNeon(ANeon* TheNeon)
 {
 	if(TheNeon)
 	{
-		Neon = TheNeon;
+		Neon.Emplace(TheNeon);
 	}
 }
 

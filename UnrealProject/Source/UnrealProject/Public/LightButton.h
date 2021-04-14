@@ -44,8 +44,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	void ActiveLight();
-	void SetMyNeon(ANeon* TheNeon);
+	void AddNeon(ANeon* TheNeon);
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "MyNeon")
-	ANeon* Neon = nullptr;
+	TArray<ANeon*> Neon;
 };

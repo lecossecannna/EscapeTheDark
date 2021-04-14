@@ -84,6 +84,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Matches)
 		int NumberOfMatches = 10;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Matches)
+		int NmbrMatchesToAdd = 5;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Itens)
 		TArray<int> Itens;

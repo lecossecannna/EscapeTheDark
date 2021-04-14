@@ -4,6 +4,7 @@
 
 #include "InteractiveObject.h"
 #include "Item.h"
+#include "Matches.h"
 #include "UnrealProjectProjectile.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -163,7 +164,7 @@ void AUnrealProjectCharacter::MoveRight(float Value)
 
 void AUnrealProjectCharacter::ActiveLight()
 {
-	if(bLightIsActive == false && NumberOfMatches >0)
+	if(bLightIsActive == false && NumberOfMatches > 0)
 	{
 		NumberOfMatches--;
 		if(!SoundMatch->IsPlaying())
@@ -207,6 +208,15 @@ void AUnrealProjectCharacter::ActiveInteractionBox()
 				PickItem = true;
 				IndexItem = item->Index;
 				item->Destroy();
+			}
+			else
+			{
+				 auto* match = Cast<AMatches>(actor);
+				 if(match)
+				 {
+					  NumberOfMatches += NmbrMatchesToAdd;
+					  match->Destroy();
+				 }
 			}
 		}
     }
