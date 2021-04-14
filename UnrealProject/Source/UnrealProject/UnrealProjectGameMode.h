@@ -60,8 +60,17 @@ protected:
 	void	GenerateDoors();
 	void	CreateWall(FTransform Transform);
 
+	void	GenerateLights();
+
+	bool	IsRoom(int x, int y);
+	bool	LightNotNear(int x, int y);
+	AActor*	PlaceLight(float x, float y) const;
+	void	PlaceCorridorSwitch(AActor* Light, int x, int y);
+	void	PlaceRoomLights();
+
 	int* Grid;
 	int* RoomsGrid;
+	TArray<FVector2D>	LightsLocation;
 
     /**
 	 * Maze's width measured in number of modules.
@@ -111,9 +120,36 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<class AMazeModule> SimpleWall = nullptr;
 
+	/* Light */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class ANeon> NeonType = nullptr;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class ALightButton> SwitchType = nullptr;
+
 	UPROPERTY(VisibleAnywhere)
 	TArray<UMazeRoom*>	Rooms;
+
+    /**
+	 * Distance in module between each light in corridors.
+	 */
+	UPROPERTY(EditAnywhere)
+	int	LightCorridorsMinDistance = 6;
+
+	/**
+	 * Distance in module between each light in rooms.
+	 */
+	UPROPERTY(EditAnywhere)
+	int	LightRoomsMinDistance = 3;
+
+    /**
+	 * Height of the Plafond
+	 */
+	UPROPERTY(EditAnywhere)
+	float	PlafondHeight = 600;
+
+	/**
+	 * Height of the Switches
+	 */
+	UPROPERTY(EditAnywhere)
+	float	SwitchHeight = 150;
 };
-
-
-

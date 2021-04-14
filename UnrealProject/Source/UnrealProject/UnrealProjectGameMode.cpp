@@ -6,8 +6,10 @@
 #include <ctime>
 #include <string>
 
+
+#include "LightButton.h"
 #include "MazeModule.h"
-#include "SimpleWall.h"
+#include "Neon.h"
 #include "MazeRoom.h"
 #include "UnrealProjectHUD.h"
 #include "UObject/ConstructorHelpers.h"
@@ -57,6 +59,8 @@ void AUnrealProjectGameMode::BeginPlay()
     GenerateDoors();
 
     CreateModules();
+
+    GenerateLights();
 }
 
 void AUnrealProjectGameMode::GenerateMaze() const
@@ -377,6 +381,29 @@ void AUnrealProjectGameMode::BreakWall(const int x, const int y) const
     Grid[XYToIndex(x, y)] = GROUND;
 }
 
+void AUnrealProjectGameMode::GenerateLights()
+{
+    //for(int iHeight = 0; iHeight < Height; iHeight++)
+    //{
+    //    for(int jWidth = 0; jWidth < Width; jWidth++)
+    //    {
+    //        if(Grid[XYToIndex(jWidth, iHeight)] == GROUND)
+    //        {
+    //            if(!IsRoom(jWidth, iHeight) && NumberOfWalls(jWidth, iHeight, GROUND) > 0)
+    //            {
+    //                if(LightNotNear(jWidth, iHeight))
+    //                {
+    //                    PlaceCorridorSwitch(PlaceLight(jWidth, iHeight), jWidth, iHeight);
+    //                    LightsLocation.Add({ static_cast<float>(jWidth), static_cast<float>(iHeight) });
+    //                }
+    //            }
+    //        }
+    //    }
+    //}
+
+    PlaceRoomLights();
+}
+
 void AUnrealProjectGameMode::GenerateDoors()
 {
 
@@ -472,3 +499,212 @@ void AUnrealProjectGameMode::CreateWall(FTransform Transform)
     GetWorld()->SpawnActor(SimpleWall, &Transform, SpawnParameters);
 }
 
+bool AUnrealProjectGameMode::IsRoom(int x, int y)
+{
+    if (Grid[XYToIndex(x, y)] != GROUND)
+        return false;
+
+    if(RoomsGrid[XYToIndex(x, y)] > DOOR_UP)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+bool AUnrealProjectGameMode::LightNotNear(int x, int y)
+{
+    for(const auto& Light : LightsLocation)
+    {
+        if(FVector2D::Distance(Light, {static_cast<float>(x), static_cast<float>(y)}) < LightCorridorsMinDistance)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+AActor* AUnrealProjectGameMode::PlaceLight(float x, float y) const
+{
+    FActorSpawnParameters SpawnParameters;
+    SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+    const FTransform Transform(FRotator::ZeroRotator, FVector{ (float)MazeX + x * (float)ModuleSize, (float)MazeY + y * (float)ModuleSize, PlafondHeight });
+
+    return GetWorld()->SpawnActor(NeonType, &Transform, SpawnParameters);
+}
+
+void AUnrealProjectGameMode::PlaceCorridorSwitch(AActor* Light, int x, int y)
+{
+    if(NumberOfWalls(x, y, GROUND) == 0)
+    {
+        return;
+    }
+    int IncrementRatio;
+
+    while(true)
+    {
+        /* Random switch wall placement*/
+        const bool bIncrementRatio = FMath::RandBool();
+        const bool bIncrementX = FMath::RandBool();
+
+        IncrementRatio = bIncrementRatio ? 1 : -1;
+
+        FVector2D WallCoordinates{ 0, 0 };
+
+        if(bIncrementX)
+        {
+            WallCoordinates.X = IncrementRatio;
+        }
+        else
+        {
+            WallCoordinates.Y = IncrementRatio;
+        }
+
+        if(Grid[XYToIndex(x + WallCoordinates.X, y + WallCoordinates.Y)] == WALL)
+        {
+            FActorSpawnParameters SpawnParameters;
+            SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+            FRotator Rotation = FRotator::ZeroRotator;
+
+            if(bIncrementX)
+            {
+                if(bIncrementRatio)
+                {
+                    Rotation.Yaw = 90;
+                }
+                else
+                {
+                    
+                }
+            }
+            else
+            {
+                if (bIncrementRatio)
+                {
+
+                }
+                else
+                {
+
+                }
+            }
+
+            const FTransform Transform(Rotation, FVector{ MazeX + x * ModuleSize + WallCoordinates.X * ModuleSize / 2, MazeY + y * ModuleSize + WallCoordinates.Y * ModuleSize / 2, SwitchHeight });
+
+            auto* Switch = Cast<ALightButton>(GetWorld()->SpawnActor(SwitchType, &Transform, SpawnParameters));
+
+            if(Switch)
+            {
+                Switch->AddNeon(Cast<ANeon>(Light));
+                return;
+            }
+        }
+    }
+
+}
+
+void AUnrealProjectGameMode::PlaceRoomLights()
+{
+    for(const auto& Room : Rooms)
+    {
+        TArray<ANeon*> Lights;
+        TArray<ALightButton*> Switches;
+
+        if(Room->RoomHeight < Room->RoomWidth)
+        {
+            const int LightCount = (float)Room->RoomWidth / (float)LightRoomsMinDistance;
+            const float LightsDistance = static_cast<float>(Room->RoomWidth) / (static_cast<float>(LightCount) + 1.f);
+
+            for(int i = 0; i < LightCount; i++)
+            {
+                Lights.Add(Cast<ANeon>(PlaceLight((float)Room->CurrentX + LightsDistance * ((float)i + 1.f), (float)Room->CurrentY + (float)(Room->RoomHeight - 1) / 2.f)));
+            }
+
+            if(LightCount == 0)
+            {
+                Lights.Add(Cast<ANeon>(PlaceLight((float)Room->CurrentX + (float)(Room->RoomWidth - 1) / 2.f, (float)Room->CurrentY + (float)(Room->RoomHeight - 1) / 2.f)));
+            }
+        }
+        else
+        {
+            const int LightCount = (float)Room->RoomHeight / (float)LightRoomsMinDistance;
+            const float LightsDistance = static_cast<float>(Room->RoomHeight) / (static_cast<float>(LightCount) + 1.f);
+
+            for (int i = 0; i < LightCount; i++)
+            {
+                Lights.Add(Cast<ANeon>(PlaceLight((float)Room->CurrentX + (float)(Room->RoomWidth - 1) / 2.f, (float)Room->CurrentY + LightsDistance * ((float)i + 1.f))));
+            }
+
+            if (LightCount == 0)
+            {
+                Lights.Add(Cast<ANeon>(PlaceLight((float)Room->CurrentX + (float)(Room->RoomWidth - 1) / 2.f, (float)Room->CurrentY + (float)(Room->RoomHeight - 1) / 2.f)));
+            }
+        }
+
+        FActorSpawnParameters SpawnParameters;
+        SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+        FRotator Rotation = FRotator::ZeroRotator;
+
+        if(Room->CurrentX > 0)
+        {
+            for (int j = 0; j < Room->RoomHeight; j++) // Left wall
+            {
+                if (Grid[XYToIndex(Room->CurrentX - 1, Room->CurrentY + j)] == WALL) // Valid door
+                {
+                    const FTransform Transform(Rotation, FVector{ MazeX + (Room->CurrentX - 0.5f) * ModuleSize, MazeY + (Room->CurrentY + j) * ModuleSize, SwitchHeight });
+
+                    Switches.Add(Cast<ALightButton>(GetWorld()->SpawnActor(SwitchType, &Transform, SpawnParameters)));
+
+                    break;
+                }
+            }
+        }
+
+        for (int j = 0; j < Room->RoomHeight; j++) // Left wall
+        {
+            if (Grid[XYToIndex(Room->CurrentX + Room->RoomWidth + 1, Room->CurrentY + j)] == WALL) // Valid door
+            {
+                const FTransform Transform(Rotation, FVector{ MazeX + (Room->CurrentX + Room->RoomWidth + 0.5f) * ModuleSize, MazeY + (Room->CurrentY + j) * ModuleSize, SwitchHeight });
+
+                Switches.Add(Cast<ALightButton>(GetWorld()->SpawnActor(SwitchType, &Transform, SpawnParameters)));
+
+                break;
+            }
+        }
+
+        for (int j = 0; j < Room->RoomWidth; j++) // Left wall
+        {
+            if (Grid[XYToIndex(Room->CurrentX + j, Room->CurrentY - 1)] == WALL) // Valid door
+            {
+                const FTransform Transform(Rotation, FVector{ MazeX + (Room->CurrentX + j) * ModuleSize, MazeY + (Room->CurrentY - 0.5f) * ModuleSize, SwitchHeight });
+
+                Switches.Add(Cast<ALightButton>(GetWorld()->SpawnActor(SwitchType, &Transform, SpawnParameters)));
+
+                break;
+            }
+        }
+
+        for (int j = 0; j < Room->RoomWidth; j++) // Left wall
+        {
+            if (Grid[XYToIndex(Room->CurrentX + j, Room->CurrentY + Room->RoomHeight + 1)] == WALL) // Valid door
+            {
+                const FTransform Transform(Rotation, FVector{ MazeX + (Room->CurrentX + j) * ModuleSize, MazeY + (Room->CurrentY + Room->RoomHeight + 0.5f) * ModuleSize, SwitchHeight });
+
+                Switches.Add(Cast<ALightButton>(GetWorld()->SpawnActor(SwitchType, &Transform, SpawnParameters)));
+
+                break;
+            }
+        }
+
+        for(int i = 0; i < Switches.Num(); i++)
+        {
+            for(int j = 0; j < Lights.Num(); j++)
+            {
+                Switches[i]->AddNeon(Lights[j]);
+            }
+        }
+    }
+}
