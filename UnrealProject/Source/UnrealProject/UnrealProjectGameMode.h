@@ -11,6 +11,19 @@
 #define WEST	2
 #define EAST	3
 
+UENUM()
+enum EModuleType
+{
+	GROUND,
+	WALL,
+	ROOM_GROUND,
+	DOOR_UP,
+	DOOR_DOWN,
+	DOOR_LEFT,
+	DOOR_RIGHT
+};
+
+class UMazeRoom;
 UCLASS(minimalapi)
 class AUnrealProjectGameMode : public AGameModeBase
 {
@@ -18,30 +31,37 @@ class AUnrealProjectGameMode : public AGameModeBase
 
 public:
 	AUnrealProjectGameMode();
-	~AUnrealProjectGameMode();
 
 	virtual void BeginPlay() override;
 
     /**
 	 * Should be called only once.
 	 */
-	void	GenerateMaze();
+	void	GenerateMaze() const;
 
 	float	GetModuleSize() const { return ModuleSize; }
 
 protected:
-	void	CreateModules();
+	friend	UMazeRoom;
+
+	void	DrawRooms();
+
+	void	CreateModules() const;
 
 	void	ResetGrid() const;
     int		XYToIndex(int x, int y) const;
     int		IsInBounds(int x, int y) const;
     void	Visit(int x, int y) const;
 
-	int		NumberOfWalls(int x, int y) const;
+	int		NumberOfWalls(int x, int y, const EModuleType& ModuleType) const;
 	void	BreakDeadEndWall(int x, int y) const;
 	void	BreakWall(int x, int y) const;
 
+	void	GenerateDoors();
+	void	CreateWall(FTransform Transform);
+
 	int* Grid;
+	int* RoomsGrid;
 
     /**
 	 * Maze's width measured in number of modules.
@@ -71,11 +91,28 @@ protected:
 	 * X and Y size of modules.
 	 */
 	UPROPERTY(EditAnywhere)
-	int	ModuleSize = 600;
+	int	ModuleSize = 300;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<class AMazeModule> LineModule = nullptr;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class AMazeModule> TurnModule = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class AMazeModule> TModule = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class AMazeModule> DeadEndModule = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class AMazeModule> CrossroadsModule = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class AMazeModule> SimpleWall = nullptr;
+
+	UPROPERTY(VisibleAnywhere)
+	TArray<UMazeRoom*>	Rooms;
 };
 
 
