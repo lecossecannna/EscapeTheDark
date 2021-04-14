@@ -77,10 +77,6 @@ public:
 	uint32 bUsingMotionControllers : 1;
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SpeedPlayer)
-		float RunSpeed = 1200;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SpeedPlayer)
-		float WalkSpeed = 600;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Matches)
 		int NumberOfMatches = 10;
@@ -118,10 +114,7 @@ protected:
 
 	void ShowBag();
 	void DisableBag();
-
-
-	void Run();
-	void Walk();
+	
 	void ShakeMove();
 	/**
 	 * Called via input to turn at a given rate.
