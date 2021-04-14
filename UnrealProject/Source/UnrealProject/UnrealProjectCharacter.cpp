@@ -3,6 +3,7 @@
 #include "UnrealProjectCharacter.h"
 
 #include "InteractiveObject.h"
+#include "Item.h"
 #include "UnrealProjectProjectile.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -10,6 +11,7 @@
 #include "GameFramework/InputSettings.h"
 #include "Kismet/GameplayStatics.h"
 #include "MotionControllerComponent.h"
+#include "Blueprint/UserWidget.h"
 #include "Components/AudioComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/PointLightComponent.h"
@@ -56,6 +58,7 @@ AUnrealProjectCharacter::AUnrealProjectCharacter()
 	{
 		InteractionBox->SetupAttachment(RootComponent);
 		InteractionBox->SetCollisionProfileName(TEXT("Trigger"));
+		InteractionBox->OnComponentBeginOverlap.AddDynamic(this, &AUnrealProjectCharacter::BeginOverlapDetection);
 	}
 	
 	//CreateSound
@@ -69,12 +72,12 @@ AUnrealProjectCharacter::AUnrealProjectCharacter()
 			SoundMatch->SetupAttachment(Sounds);
 			SoundMatch->bAutoActivate = false;
 		}
-	}
-	
+	}	
 }
 
 void AUnrealProjectCharacter::Tick(float DeltaSeconds)
 {
+	Super::Tick(DeltaSeconds);
 	if(bLightIsActive)
 	{
 		AnimLight(DeltaSeconds);
@@ -85,7 +88,6 @@ void AUnrealProjectCharacter::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
-
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -105,6 +107,9 @@ void AUnrealProjectCharacter::SetupPlayerInputComponent(class UInputComponent* P
 
 	PlayerInputComponent->BindAction("Interaction", IE_Pressed, this, &AUnrealProjectCharacter::ActiveInteractionBox);
 
+	PlayerInputComponent->BindAction("Bag", IE_Pressed, this, &AUnrealProjectCharacter::ShowBag);
+	PlayerInputComponent->BindAction("Bag", IE_Released, this, &AUnrealProjectCharacter::DisableBag);
+
 	// Bind movement events
 	PlayerInputComponent->BindAxis("MoveForward", this, &AUnrealProjectCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AUnrealProjectCharacter::MoveRight);
@@ -116,6 +121,20 @@ void AUnrealProjectCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	PlayerInputComponent->BindAxis("TurnRate", this, &AUnrealProjectCharacter::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AUnrealProjectCharacter::LookUpAtRate);
+}
+
+void AUnrealProjectCharacter::BeginOverlapDetection(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	UInteractiveObject* component = OtherActor->FindComponentByClass<UInteractiveObject>();
+	if (component)
+	{
+		//StartingWidgetClass[0].
+		if(UserInterface)
+		{
+			//UserInterface->
+		}
+	}
 }
 
 void AUnrealProjectCharacter::MoveForward(float Value)
@@ -138,8 +157,9 @@ void AUnrealProjectCharacter::MoveRight(float Value)
 
 void AUnrealProjectCharacter::ActiveLight()
 {
-	if(bLightIsActive == false)
+	if(bLightIsActive == false && NumberOfMatches >0)
 	{
+		NumberOfMatches--;
 		if(!SoundMatch->IsPlaying())
 		{
 			SoundMatch->Activate(true);
@@ -168,19 +188,45 @@ void AUnrealProjectCharacter::ActiveInteractionBox()
 {
 	TArray<AActor*>actors;
 	InteractionBox->GetOverlappingActors(actors);
-        for(auto*  actor : actors) 
+    for(auto*  actor : actors) 
 	{
 		UInteractiveObject* component = actor->FindComponentByClass<UInteractiveObject>();
 		if(component) 
 		{
-		 component->bIsSelected = true;
+			component->bIsSelected = true;
+			auto* item = Cast<AItem>(actor);
+			if(item)
+			{
+				Itens.Add(item->Index);
+				PickItem = true;
+				IndexItem = item->Index;
+				item->Destroy();
+			}
 		}
-        }
+    }
 }
 
 void AUnrealProjectCharacter::DesactiveInteractionBox()
 {
 	InteractionBox->SetCollisionProfileName(TEXT("NoCollision"));
+}
+
+void AUnrealProjectCharacter::ShowBag()
+{
+	ChangedValue = true;
+	BagVisibility = true;
+}
+
+void AUnrealProjectCharacter::DisableBag()
+{
+	//DisableBagBP();
+	ChangedValue = true;
+	BagVisibility = false;
+}
+
+void AUnrealProjectCharacter::ShakeMove()
+{
+//FirstPersonCameraComponent->came
 }
 
 void AUnrealProjectCharacter::TurnAtRate(float Rate)

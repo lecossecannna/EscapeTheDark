@@ -33,7 +33,7 @@ class AUnrealProjectCharacter : public ACharacter
 		USceneComponent* Sounds = nullptr;
 
 	UPROPERTY(VisibleAnywhere, Category = "Sound")
-		UAudioComponent* SoundMatch = nullptr; 
+		UAudioComponent* SoundMatch = nullptr;
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "InteractionBox")
 		UBoxComponent* InteractionBox = nullptr;
@@ -41,10 +41,15 @@ public:
 
 	// Called every frame
 	virtual void Tick(float DeltaSeconds) override;
-
+	
 protected:
 	virtual void BeginPlay();
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UMG Game")
+		TSubclassOf<UUserWidget> StartingWidgetClass;
+
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UMG Game")
+	UUserWidget* UserInterface = nullptr;
 public:
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
@@ -72,6 +77,25 @@ public:
 	uint32 bUsingMotionControllers : 1;
 
 
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Matches)
+		int NumberOfMatches = 10;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Itens)
+		TArray<int> Itens;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Keys)
+		bool PickItem = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Keys)
+		int IndexItem = 0;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Keys)
+		bool ChangedValue = false;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Keys)
+		bool BagVisibility = false;
+
 	bool bLightIsActive = false;
 protected:
 
@@ -87,6 +111,11 @@ protected:
 
 	void ActiveInteractionBox();
 	void DesactiveInteractionBox();
+
+	void ShowBag();
+	void DisableBag();
+	
+	void ShakeMove();
 	/**
 	 * Called via input to turn at a given rate.
 	 * @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
@@ -111,7 +140,12 @@ public:
 	/** Returns FirstPersonCameraComponent subobject **/
 	FORCEINLINE class UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
+
 private:
+	UFUNCTION()
+		virtual void BeginOverlapDetection(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+			int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	
 	FTimerHandle HitTimeHandle;
 	float HitTiming = 1.5f;
 

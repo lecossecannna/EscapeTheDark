@@ -62,7 +62,7 @@ void ALightButton::ActiveLight()
 	{
 		if (!SoundActiveButton->IsPlaying())
 		{
-			SoundActiveButton->Activate(true);
+		SoundActiveButton->Activate(true);
 		}
 		if(Neon->IsVisible()==false) 
 		{
