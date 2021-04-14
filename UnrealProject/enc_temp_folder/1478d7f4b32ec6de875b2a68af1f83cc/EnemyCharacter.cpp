@@ -7,10 +7,7 @@
 
 #include "Components/AudioComponent.h"
 #include "Components/SphereComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "UnrealProject/Public/Neon.h"
-#include "UnrealProject/UnrealProjectCharacter.h"
 
 // Sets default values
 AEnemyCharacter::AEnemyCharacter()
@@ -62,45 +59,12 @@ void AEnemyCharacter::BeginOverlapDetection(UPrimitiveComponent* OverlappedCompo
 void AEnemyCharacter::BeginPlay()
 {
   Super::BeginPlay();
-  Player = Cast<AUnrealProjectCharacter>(GetWorld()->GetFirstPlayerController()->GetPawn());
-  GetCharacterMovement()->MaxWalkSpeed = StartSpeed;
+ 
 }
 
 // Called every frame
 void AEnemyCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if(bCheckItens)
-	{
-		int nbmrOfItens = Player->Itens.Num();
-		if (nbmrOfItens > 0)
-		{
-			if (nbmrOfItens == 1)
-			{
-				GetCharacterMovement()->MaxWalkSpeed = Speed1;
-			}
-			else if (nbmrOfItens == 2)
-			{
-				GetCharacterMovement()->MaxWalkSpeed = Speed2;
-			}
-			else if (nbmrOfItens == 3)
-			{
-				GetCharacterMovement()->MaxWalkSpeed = Speed3;
-			}
-			else if (nbmrOfItens == 4)
-			{
-				GetCharacterMovement()->MaxWalkSpeed = Speed4;
-			}
-			else if (nbmrOfItens == 5)
-			{
-				GetCharacterMovement()->MaxWalkSpeed = Speed5;
-			}
-			else if (nbmrOfItens == 6)
-			{
-				GetCharacterMovement()->MaxWalkSpeed = Speed6;
-				bCheckItens = false;
-			}
-		}
-	}
-	
+
 }

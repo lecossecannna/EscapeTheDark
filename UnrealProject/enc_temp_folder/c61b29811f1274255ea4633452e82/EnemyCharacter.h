@@ -6,7 +6,6 @@
 #include "GameFramework/Character.h"
 #include "EnemyCharacter.generated.h"
 
-class AUnrealProjectCharacter;
 class USphereComponent;
 UCLASS()
 class UNREALPROJECT_API AEnemyCharacter : public ACharacter
@@ -24,8 +23,7 @@ private:
 	  virtual void BeginOverlapDetection(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	  int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-  AUnrealProjectCharacter* Player;
-  bool bCheckItens = true;
+	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -43,19 +41,4 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SpeedPlayer)
-		float StartSpeed = 300;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SpeedPlayer)
-		float Speed1 = 350;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SpeedPlayer)
-		float Speed2 = 400;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SpeedPlayer)
-		float Speed3 = 500;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SpeedPlayer)
-		float Speed4 = 600;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SpeedPlayer)
-		float Speed5 = 800;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SpeedPlayer)
-		float Speed6 = 1200;
 };

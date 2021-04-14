@@ -72,6 +72,7 @@ bool ANeon::IsVisible()
 
 void ANeon::ActiveLight()
 {
+	UE_LOG(LogTemp, Warning, TEXT("Activate"))
 	Light->SetVisibility(true);
 }
 
