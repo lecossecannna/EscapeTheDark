@@ -30,6 +30,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Index")
 		int Index = 0;
+
 	
 protected:
 	// Called when the game starts or when spawned
