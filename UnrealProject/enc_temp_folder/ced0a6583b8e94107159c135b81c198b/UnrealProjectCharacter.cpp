@@ -15,7 +15,6 @@
 #include "Components/AudioComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/PointLightComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -89,7 +88,6 @@ void AUnrealProjectCharacter::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
-	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -111,10 +109,6 @@ void AUnrealProjectCharacter::SetupPlayerInputComponent(class UInputComponent* P
 
 	PlayerInputComponent->BindAction("Bag", IE_Pressed, this, &AUnrealProjectCharacter::ShowBag);
 	PlayerInputComponent->BindAction("Bag", IE_Released, this, &AUnrealProjectCharacter::DisableBag);
-
-	
-	PlayerInputComponent->BindAction("Run", IE_Pressed, this, &AUnrealProjectCharacter::Run);
-	PlayerInputComponent->BindAction("Run", IE_Released, this, &AUnrealProjectCharacter::Walk);
 
 	// Bind movement events
 	PlayerInputComponent->BindAxis("MoveForward", this, &AUnrealProjectCharacter::MoveForward);
@@ -228,16 +222,6 @@ void AUnrealProjectCharacter::DisableBag()
 	//DisableBagBP();
 	ChangedValue = true;
 	BagVisibility = false;
-}
-
-void AUnrealProjectCharacter::Run()
-{
-	GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
-}
-
-void AUnrealProjectCharacter::Walk()
-{
-	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 }
 
 void AUnrealProjectCharacter::ShakeMove()

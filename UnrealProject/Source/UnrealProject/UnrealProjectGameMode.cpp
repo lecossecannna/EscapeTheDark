@@ -383,23 +383,23 @@ void AUnrealProjectGameMode::BreakWall(const int x, const int y) const
 
 void AUnrealProjectGameMode::GenerateLights()
 {
-    //for(int iHeight = 0; iHeight < Height; iHeight++)
-    //{
-    //    for(int jWidth = 0; jWidth < Width; jWidth++)
-    //    {
-    //        if(Grid[XYToIndex(jWidth, iHeight)] == GROUND)
-    //        {
-    //            if(!IsRoom(jWidth, iHeight) && NumberOfWalls(jWidth, iHeight, GROUND) > 0)
-    //            {
-    //                if(LightNotNear(jWidth, iHeight))
-    //                {
-    //                    PlaceCorridorSwitch(PlaceLight(jWidth, iHeight), jWidth, iHeight);
-    //                    LightsLocation.Add({ static_cast<float>(jWidth), static_cast<float>(iHeight) });
-    //                }
-    //            }
-    //        }
-    //    }
-    //}
+    for(int iHeight = 0; iHeight < Height; iHeight++)
+    {
+        for(int jWidth = 0; jWidth < Width; jWidth++)
+        {
+            if(Grid[XYToIndex(jWidth, iHeight)] == GROUND)
+            {
+                if(!IsRoom(jWidth, iHeight) && NumberOfWalls(jWidth, iHeight, GROUND) > 0)
+                {
+                    if(LightNotNear(jWidth, iHeight))
+                    {
+                        PlaceCorridorSwitch(PlaceLight(jWidth, iHeight), jWidth, iHeight);
+                        LightsLocation.Add({ static_cast<float>(jWidth), static_cast<float>(iHeight) });
+                    }
+                }
+            }
+        }
+    }
 
     PlaceRoomLights();
 }
